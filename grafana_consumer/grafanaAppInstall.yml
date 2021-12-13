@@ -1,0 +1,31 @@
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: grafana-app
+  namespace: kapp-controller-packaging-global
+  annotations:
+    ext.packaging.carvel.dev/fetch-0-secret-name: grafana-app-secret
+spec:
+  serviceAccountName: kapp-cluster-admin
+  packageRef:
+    refName: grafana-app.nasic.gov
+    versionSelection:
+      constraints: 1.0.0
+  values:
+    - secretRef:
+        name: grafana-app-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-app-secret
+stringData:
+  values.yml: |
+    ---
+    path: "/colossus-service-mesh/grafana"
+    svc_port: 3000
+    target_port: 3000
+    app_name: "grafana"
+    name_space: "istio-system"
+    version: "7.2.1"

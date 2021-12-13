@@ -1,0 +1,69 @@
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: grafana
+  annotations:
+    ext.packaging.carvel.dev/fetch-0-secret-name.0: grafana-app-secret	
+spec:
+  serviceAccountName: grafana
+  packageRef:
+    refName: grafana-app.nasic.gov
+    versionSelection:
+      constraints: 1.0.0
+  values:
+    - secretRef:
+        name: grafana-app-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-app-secret
+stringData:
+  values.yml: |
+    ---
+    path: "/colossus-service-mesh/grafana"
+    svc_port: 3000
+    target_port: 3000
+    app_name: "grafana"
+    name_space: "istio-system"
+    version: "7.2.1"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: add-image-pull-secrets
+stringData:
+  add-ips.yml: |
+    #@ load("@ytt:overlay", "overlay")
+
+    ---
+    kind: Secret
+    apiVersion: v1
+    metadata:
+      name: grafana-app-secret
+      annotations:
+        secretgen.carvel.dev/image-pull-secret: ""
+    type: kubernetes.io/dockerconfigjson
+    data:
+    stringData:
+      .dockerconfigjson: |
+       {
+        "auths": {
+        "index.docker.io": 
+        {
+          "username": "vnarayanan",
+          "password": "Mayuresh16!",
+           "auth": "dm5hcmF5YW5hbjpNYXl1cmVzaDE2IQ=="
+         }
+       }
+       }
+    #@overlay/match by=overlay.subset({"kind":"Deployment"})
+    ---
+    spec:
+      template:
+        spec:
+          #@overlay/match missing_ok=True
+          imagePullSecrets:
+          - name: grafana-app-secret

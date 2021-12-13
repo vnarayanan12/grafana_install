@@ -1,0 +1,15 @@
+#@data/values-schema
+---
+#@schema/desc "Path for grafana"
+path: ""
+#@schema/desc "Port number for the service"
+svc_port: 3000
+#@schema/desc "Port number for the Application"
+target_port: 3000
+#@schema/desc "app name"
+app_name: ""
+#@schema/desc "name space"
+name_space: ""
+#@schema/desc "Version "
+version: "1.0.0"
+

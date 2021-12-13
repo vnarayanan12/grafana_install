@@ -1,0 +1,200 @@
+#@ load("@ytt:data", "data")
+
+#@ def labels():
+  helm.sh/chart: grafana-5.8.10
+  app.kubernetes.io/name: #@ data.values.app_name
+  app.kubernetes.io/instance: #@ data.values.app_name
+  app.kubernetes.io/version: #@ data.values.version
+  app.kubernetes.io/managed-by: Helm
+#@ end
+
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: #@ data.values.app_name
+  namespace: #@ data.values.name_space
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: #@ data.values.path
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: #@ data.values.app_name
+  namespace: #@ data.values.name_space
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+#!Source: grafana/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels: #@ labels()
+  name: #@ data.values.app_name
+  namespace: #@ data.values.name_space
+---
+#!Source: grafana/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: #@ data.values.app_name
+  namespace: #@ data.values.name_space
+  labels: #@ labels()
+data:
+  grafana.ini: |
+    [analytics]
+    check_for_updates = true
+    [grafana_net]
+    url = https://grafana.net
+    [log]
+    mode = console
+    [paths]
+    data = /var/lib/grafana/data
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - access: proxy
+      editable: true
+      isDefault: true
+      jsonData:
+        timeInterval: 5s
+      name: Prometheus
+      orgId: 1
+      type: prometheus
+      url: http://prometheus:9090
+  dashboardproviders.yaml: |
+    apiVersion: 1
+    providers:
+    - name: kubernetes
+      folder: kubernetes
+      disableDeletion: true
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/kubernetes
+    - name: prometheus
+      folder: prometheus
+      disableDeletion: true
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/prometheus
+    - name: istio
+      folder: istio
+      disableDeletion: true
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/istio
+---
+#!Source: grafana/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: #@ data.values.app_name
+  namespace: #@ data.values.name_space
+  labels: #@ labels()
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-service
+      port: #@ data.values.svc_port
+      protocol: TCP
+      targetPort: #@ data.values.target_port
+
+  selector:
+    app.kubernetes.io/name: #@ data.values.app_name
+    app.kubernetes.io/instance: #@ data.values.app_name
+---
+#!Source: grafana/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #@ data.values.app_name
+  namespace: #@ data.values.name_space
+  labels: #@ labels()
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: #@ data.values.app_name
+      app.kubernetes.io/instance: #@ data.values.app_name
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: #@ data.values.app_name
+        app.kubernetes.io/instance: #@ data.values.app_name
+        app: grafana
+      annotations:
+        checksum/config: d2485b1ee9f9be63381c231826a43742bb10ebac2964bdc3f22a100eab9d032c
+        checksum/dashboards-json-config: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/sc-dashboard-provider-config: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        sidecar.istio.io/inject: "false"
+    spec:
+      serviceAccountName: grafana
+      securityContext:
+          runAsUser: 0
+          fsGroup: 0
+          supplementalGroups:
+          - 0 
+      containers:
+        - name: grafana
+          image: "grafana/grafana:7.1.5"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config
+              mountPath: "/etc/grafana/grafana.ini"
+              subPath: grafana.ini
+            - name: config
+              mountPath: "/etc/grafana/provisioning/datasources/datasources.yaml"
+              subPath: datasources.yaml
+            - name: config
+              mountPath: "/etc/grafana/provisioning/dashboards/dashboardproviders.yaml"
+              subPath: dashboardproviders.yaml
+          ports:
+            - name: service
+              containerPort: #@ data.values.svc_port
+              protocol: TCP
+            - name: grafana
+              containerPort: #@ data.values.svc_port
+              protocol: TCP
+          env:
+            - name: "GF_AUTH_ANONYMOUS_ENABLED"
+              value: "true"
+            - name: "GF_AUTH_ANONYMOUS_ORG_ROLE"
+              value: "Admin"
+            - name: "GF_AUTH_BASIC_ENABLED"
+              value: "false"
+            - name: "GF_SECURITY_ADMIN_PASSWORD"
+              value: "-"
+            - name: "GF_SECURITY_ADMIN_USER"
+              value: "-"
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /api/health
+              port: #@ data.values.svc_port
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: #@ data.values.svc_port
+          resources: {}
+      volumes:
+        - name: config
+          configMap:
+            name: grafana

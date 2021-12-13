@@ -1,0 +1,17 @@
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: grafana-demo
+  namespace: kapp-controller-packaging-global
+  annotations:
+    ext.packaging.carvel.dev/fetch-0-secret-name: grafana-app-secret
+spec:
+  serviceAccountName: default
+  packageRef:
+    refName: grafana-app.nasic.gov
+    versionSelection:
+      constraints: 1.0.0
+  values:
+    - secretRef:
+        name: grafana-app-secret

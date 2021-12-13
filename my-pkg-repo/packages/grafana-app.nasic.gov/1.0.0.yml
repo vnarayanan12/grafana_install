@@ -1,0 +1,27 @@
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  name: grafana-app.nasic.gov.1.0.0
+spec:
+  refName: grafana-app.nasic.gov
+  version: 1.0.0
+  releaseNotes: |
+    Initial release of the grafana app package
+  valuesSchema:
+    openAPIv3:
+      title: grafana-app values schema
+  template:
+    spec:
+      fetch:
+      - imgpkgBundle:
+          image: index.docker.io/vnarayanan/grafana-app:1.0.0
+      template:
+      - ytt:
+          paths:
+          - config/
+      - kbld:
+          paths:
+          - '-'
+          - .imgpkg/images.yml
+      deploy:
+      - kapp: {}

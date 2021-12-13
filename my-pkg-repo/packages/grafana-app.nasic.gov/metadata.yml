@@ -1,0 +1,11 @@
+---
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: PackageMetadata
+metadata:
+  name: grafana-app.nasic.gov
+spec:
+  displayName: "Grafana App"
+  longDescription: "Grafana app consisting of a k8s deployment and service"
+  shortDescription: "Grafana App for deploying"
+  categories:
+  - demo

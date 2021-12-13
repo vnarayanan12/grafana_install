@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: "2021-12-08T17:53:44Z"
+  name: default
+  namespace: default
+  resourceVersion: "605"
+  selfLink: /api/v1/namespaces/default/serviceaccounts/default
+  uid: 92893996-e845-4c41-8bad-b78f06c7609a
+secrets:
+- name: default-token-xlxl6
+imagePullSecrets:
+- name: grafana-app-secret

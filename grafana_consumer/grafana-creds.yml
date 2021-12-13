@@ -1,0 +1,32 @@
+# Generate grafana-app-secret secret via
+#   kubectl create secret docker-registry k14stest-reg --docker-username=k14stest --docker-password=... --docker-server=index.docker.io -n kapp-controller-packaging-global
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-app-secret
+  namespace: kapp-controller-packaging-global
+  annotations:
+   secretgen.carvel.dev/image-pull-secret: ""
+type: kubernetes.io/.dockerconfigjson
+stringData:
+  .dockerconfigjson: |
+   {
+    "auths": {
+    "index.docker.io": 
+     {
+      "username": "vnarayanan",
+       "password": "Mayuresh16!",
+       "auth": "dm5hcmF5YW5hbjpNYXl1cmVzaDE2IQ=="
+     }
+    }
+   }
+---
+apiVersion: secretgen.carvel.dev/v1alpha1
+kind: SecretExport
+metadata:
+  name: grafana-app-secret
+  namespace: kapp-controller-packaging-global
+spec:
+  toNamespaces:
+  - "*"
+

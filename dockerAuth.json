@@ -1,0 +1,10 @@
+{
+"auths": {
+   "https://index.docker.io/v1/": 
+    { 
+       "username": "vnarayanan",
+       "password": "Mayuresh16!",
+       "auth": "dm5hcmF5YW5hbjpNYXl1cmVzaDE2IQ=="
+    }
+ }
+}
