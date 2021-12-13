@@ -9,17 +9,7 @@ metadata:
    secretgen.carvel.dev/image-pull-secret: ""
 type: kubernetes.io/.dockerconfigjson
 stringData:
-  .dockerconfigjson: |
-   {
-    "auths": {
-    "index.docker.io": 
-     {
-      "username": "vnarayanan",
-       "password": "Mayuresh16!",
-       "auth": "dm5hcmF5YW5hbjpNYXl1cmVzaDE2IQ=="
-     }
-    }
-   }
+  .dockerconfigjson: ewogImF1dGhzIjogewogImluZGV4LmRvY2tlci5pbyI6IAogIHsKICAgInVzZXJuYW1lIjogInZuYXJheWFuYW4iLAogICAgInBhc3N3b3JkIjogIk1heXVyZXNoMTYhIiwKICAgICJhdXRoIjogImRtNWhjbUY1WVc1aGJqcE5ZWGwxY21WemFERTJJUT09IgogIH0KIH0KfQo=
 ---
 apiVersion: secretgen.carvel.dev/v1alpha1
 kind: SecretExport

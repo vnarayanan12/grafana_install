@@ -4,7 +4,7 @@ kind: PackageInstall
 metadata:
   name: grafana
   annotations:
-    ext.packaging.carvel.dev/fetch-0-secret-name.0: grafana-app-secret	
+    ext.packaging.carvel.dev/fetch-0-secret-name.0: grafana-app-secret
 spec:
   serviceAccountName: grafana
   packageRef:
@@ -28,7 +28,15 @@ stringData:
     app_name: "grafana"
     name_space: "istio-system"
     version: "7.2.1"
-
+---
+apiVersion: secretgen.carvel.dev/v1alpha1
+kind: SecretExport
+metadata:
+  name: grafana-app-secret
+  namespace: kapp-controller-packaging-global
+spec:
+  toNamespaces:
+    - "*"
 ---
 apiVersion: v1
 kind: Secret
@@ -48,17 +56,7 @@ stringData:
     type: kubernetes.io/dockerconfigjson
     data:
     stringData:
-      .dockerconfigjson: |
-       {
-        "auths": {
-        "index.docker.io": 
-        {
-          "username": "vnarayanan",
-          "password": "Mayuresh16!",
-           "auth": "dm5hcmF5YW5hbjpNYXl1cmVzaDE2IQ=="
-         }
-       }
-       }
+      .dockerconfigjson: ewogImF1dGhzIjogewogImluZGV4LmRvY2tlci5pbyI6IAogIHsKICAgInVzZXJuYW1lIjogInZuYXJheWFuYW4iLAogICAgInBhc3N3b3JkIjogIk1heXVyZXNoMTYhIiwKICAgICJhdXRoIjogImRtNWhjbUY1WVc1aGJqcE5ZWGwxY21WemFERTJJUT09IgogIH0KIH0KfQo=
     #@overlay/match by=overlay.subset({"kind":"Deployment"})
     ---
     spec:

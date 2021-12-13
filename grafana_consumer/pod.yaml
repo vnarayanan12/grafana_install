@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: grafana-pod
+  namespace: kapp-controller-packaging-global
+spec:
+  containers:
+    - name: grafana-app
+      image: index.docker.io/vnarayanan/grafana-repo@sha256:bb2411c1a29d4156b902d88fec769d8aebadb108d1e3ffa0e403ebbdc8ef80a7
+      imagePullSecrets:
+        - name: grafana-app-secret
